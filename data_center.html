@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>海洋牧场智慧监测系统</title>
+    <link rel="stylesheet" href="static/plugins/bootstrap-3.4.1-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="static/plugins/fontawesome-free-6.5.2-web/css/all.css">
+    <script src="static/plugins/fontawesome-free-6.5.2-web/js/all.js"></script>
+    <script src="static/js/chart.js"></script>
+    <style>
+        body{
+            background-image: url('static/img/user_index.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .data-center-image {
+            width: 100%;
+            height: 50%;
+            object-fit: contain;
+        }
+        .date-time {
+            margin-right: 20px;
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .title{
+            text-align: center;
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .container1{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .top-section {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .bottom-section {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div style="height: 50px; line-height: 50px;">
+        <div class="col-sm-8">
+            <ul class="nav nav-pills">
+                <li role="presentation"><a href="/user">主要信息</a></li>
+                <li role="presentation"><a href="/underwater_system">水下系统</a></li>
+                <li role="presentation" class="active"><a href="/data_center">数据中心</a></li>
+            </ul>
+        </div>
+        <div class="col-sm-4 text-right">
+            <span class="date-time" id="dateTime"></span>
+        </div>
+    </div>
+    <div style="height:calc(100%-50px);">
+        <div class="col-sm-8">
+            <div style="height:100%;padding:5px;">
+                <div class="col-sm-6">
+                    <div style="height:35%;padding:10px;">
+                        <p class="title">数据总量</p>
+                        <div style="color: white; display: flex; align-items: center;">
+                            <i class="fas fa-database fa-3x" style="margin-right: 15px;"></i>
+                            <span style="font-size: 24px;">MySql数据库: {{data_size}}KB</span>
+                        </div>
+                    </div>
+                    <div style="height:65%;padding:10px;">
+                        <p class="title">硬件信息统计</p>
+                        <div class="container1">
+                            <div class="top-section">
+                                <div style="text-align: center; background-color: #2c3e50; padding: 20px; border-radius: 10px;">
+                                    <i class="fas fa-tasks fa-3x" style="color: #95a5a6; margin-bottom: 10px;"></i>
+                                    <p style="color: #fff; font-size: 18px; font-weight: bold;">进程总数</p>
+                                    <p style="color: #7f8c8d; font-size: 24px; font-weight: bold;">{{pids}}</p>
+                                </div>
+                                <div style="text-align: center;">
+                                    <i class="fas fa-clock fa-2x" style="color:white;"></i>
+                                    <p style="color:white;">CPU使用率</p>
+                                    <canvas id="cpu-usage-chart" width="150" height="150"></canvas>
+                                </div>
+                            </div>
+                            <div class="bottom-section">
+                                <div style="text-align: center;">
+                                    <i class="fas fa-memory fa-2x" style="color:white;"></i>
+                                    <p style="color:white">内存使用率</p>
+                                    <canvas id="memory-usage-chart" width="150" height="150"></canvas>
+                                </div>
+                                <div style="text-align: center;">
+                                    <i class="fas fa-hdd fa-2x" style="color:white;"></i>
+                                    <p style="color:white">硬盘使用率</p>
+                                    <canvas id="disk-usage-chart" width="150" height="150"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <p class="title">数据中心分布</p>
+                    <img src="static/img/data_center.png" alt="数据中心分布" class="data-center-image"
+                         style="max-height:300px;">
+                    <div class="card" style="background-color: #2c3e50; padding: 20px; border-radius: 10px;">
+                        <div class="card-header" style="display: flex; align-items: center;">
+                            <i class="fas fa-server fa-2x" style="color: #95a5a6; margin-right: 10px;"></i>
+                            <h4 style="color: white; margin: 0;">数据中心信息</h4>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-dark">
+                                <thead>
+                                <tr>
+                                    <th style="color: white;"><i class="fas fa-cloud" style="margin-right: 5px;"></i>服务商
+                                    </th>
+                                    <th style="color: white;"><i class="fas fa-map-marker-alt"
+                                                                 style="margin-right: 5px;"></i>地点
+                                    </th>
+                                    <th style="color: white;"><i class="fas fa-clock" style="margin-right: 5px;"></i>连接时长
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td style="color: white;"><i class="fas fa-cloud-upload-alt"
+                                                                 style="margin-right: 5px;"></i>阿里云
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-map-marker-alt"
+                                                                 style="margin-right: 5px;"></i>北京
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-hourglass-half"
+                                                                 style="margin-right: 5px;"></i>12 ms
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="color: white;"><i class="fas fa-cloud-upload-alt"
+                                                                 style="margin-right: 5px;"></i>腾讯云
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-map-marker-alt"
+                                                                 style="margin-right: 5px;"></i>上海
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-hourglass-half"
+                                                                 style="margin-right: 5px;"></i>15 ms
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="color: white;"><i class="fas fa-cloud-upload-alt"
+                                                                 style="margin-right: 5px;"></i>华为云
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-map-marker-alt"
+                                                                 style="margin-right: 5px;"></i>广州
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-hourglass-half"
+                                                                 style="margin-right: 5px;"></i>18 ms
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="color: white;"><i class="fas fa-cloud-upload-alt"
+                                                                 style="margin-right: 5px;"></i>百度云
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-map-marker-alt"
+                                                                 style="margin-right: 5px;"></i>深圳
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-hourglass-half"
+                                                                 style="margin-right: 5px;"></i>22 ms
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="color: white;"><i class="fas fa-cloud-upload-alt"
+                                                                 style="margin-right: 5px;"></i>中国电信
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-map-marker-alt"
+                                                                 style="margin-right: 5px;"></i>成都
+                                    </td>
+                                    <td style="color: white;"><i class="fas fa-hourglass-half"
+                                                                 style="margin-right: 5px;"></i>24 ms
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card" style="background-color: #2c3e50; padding: 20px; border-radius: 10px;">
+                <div class="card-header" style="display: flex; align-items: center;">
+                    <i class="fas fa-hdd fa-2x" style="color: #95a5a6; margin-right: 10px;"></i>
+                    <h4 style="color: white; margin: 0;">设备信息</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-dark">
+                        <thead>
+                        <tr>
+                            <th style="color: white;"><i class="fas fa-tag" style="margin-right: 5px;"></i>设备</th>
+                            <th style="color: white;"><i class="fas fa-barcode" style="margin-right: 5px;"></i>编号</th>
+                            <th style="color: white;"><i class="fas fa-cubes" style="margin-right: 5px;"></i>类型</th>
+                            <th style="color: white;"><i class="fas fa-database" style="margin-right: 5px;"></i>大小
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in device_result %}
+                        <tr>
+                            <td style="color: white;"><i class="fas fa-server" style="margin-right: 5px;"></i>{{item['name']}}
+                            </td>
+                            <td style="color: white;"><i class="fas fa-barcode" style="margin-right: 5px;"></i>{{item['id']}}
+                            </td>
+                            <td style="color: white;"><i class="fas fa-box" style="margin-right: 5px;"></i>{{item['type']}}
+                            </td>
+                            <td style="color: white;"><i class="fas fa-hdd" style="margin-right: 5px;"></i>{{item['size']}}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div style="padding:10px"></div>
+            <div class="card" style="background-color: #2c3e50; padding: 20px; border-radius: 10px; height: 30%;">
+                <div class="card-header" style="display: flex; align-items: center;">
+                    <i class="fas fa-tools fa-2x" style="color: #95a5a6; margin-right: 10px;"></i>
+                    <h4 style="color: white; margin: 0;">服务信息</h4>
+                </div>
+                <div class="card-body" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div style="color:white; display: flex; align-items: center; margin-bottom: 10px;">
+                        <i class="fas fa-database" style="margin-right: 5px;"></i>
+                        <span>数据库: MySQL</span>
+                    </div>
+                    <div style="color:white; display: flex; align-items: center; margin-bottom: 10px;">
+                        <i class="fas fa-search" style="margin-right: 5px;"></i>
+                        <span>查询次数: 5423</span>
+                    </div>
+                    <div style="color:white; display: flex; align-items: center; margin-bottom: 10px;">
+                        <i class="fas fa-chart-line" style="margin-right: 5px;"></i>
+                        <span>访问次数: 6451</span>
+                    </div>
+                    <div style="color:white; display: flex; align-items: center;">
+                        <i class="fas fa-stopwatch" style="margin-right: 5px;"></i>
+                        <span>查询时间: 0.1s</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    function updateDateTime() {
+        var now = new Date();
+        var dateTimeString = now.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        document.getElementById('dateTime').textContent = dateTimeString;
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+</script>
+<script>
+    var cpu_times_user={{cpu_times.user}};
+    var cpu_times_system={{cpu_times.system}};
+    var cpu_times_idle={{cpu_times.idle}};
+    var cpuUsageChart = new Chart(document.getElementById('cpu-usage-chart'), {
+      type: 'pie',
+      data: {
+        labels: ['用户时间', '系统时间', '空闲时间'],
+        datasets: [{
+          data: [cpu_times_user, cpu_times_system, cpu_times_idle],
+          backgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          title: {
+            display: false
+          },
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.raw.toFixed(1) + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+</script>
+<script>
+    var mem_total={{mem.total/1024**3}};
+    var mem_available={{mem.available/1024**3}};
+    var memUsageChart = new Chart(document.getElementById('memory-usage-chart'), {
+      type: 'pie',
+      data: {
+        labels: ['已使用', '可用'],
+        datasets: [{
+          data: [(mem_total - mem_available) / mem_total * 100, mem_available / mem_total * 100],
+          backgroundColor: ['#ff6384', '#36a2eb']
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          title: {
+            display: false
+          },
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.raw.toFixed(1) + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+</script>
+<script>
+    var disk_total={{disk.total / 1024**3}};
+    var disk_used={{disk.used / 1024**3}};
+    var disk_free={{disk.free / 1024**3}};
+    var diskUsageChart = new Chart(document.getElementById('disk-usage-chart'), {
+      type: 'pie',
+      data: {
+        labels: ['已使用', '可用'],
+        datasets: [{
+          data: [disk_used / disk_total * 100, disk_free / disk_total * 100],
+          backgroundColor: ['#ff6384', '#36a2eb']
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          title: {
+            display: false
+          },
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.raw.toFixed(1) + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+</script>
+</body>
+</html>

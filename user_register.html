@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户注册</title>
+    <link rel="stylesheet" href="static/plugins/bootstrap-3.4.1-dist/css/bootstrap.css">
+    <style>
+        body {
+            margin-top: 50px;
+            background-image: url('static/img/index_background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .ct {
+            margin-left: auto;                  /* 设置水平居中 */
+            margin-right: auto;
+            margin-top: 75px;
+            width: 500px;
+            height: 550px;
+            border: 2px solid black;
+            padding: 20px 40px;                 /* 设置内边距 */
+            border-radius: 10px;                /* 设置圆角*/
+            box-shadow: 5px 5px 10px #aaa;    /* 设置阴影 水平 垂直 厚度 颜色*/
+            background-color: rgba(255, 255, 255, 0.8); /* 设置登录框的背景颜色为白色,透明度为0.8 */
+        }
+
+        .ct h1 {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .ct button {
+            margin: 20px;
+            width: 200px;
+            height: 50px;
+            font-size: 18px;
+        }
+
+        .page-title {
+            font-family: 'Arial Black', sans-serif;
+            font-weight: bold;
+            font-size: 46px;
+        }
+
+    </style>
+</head>
+<body>
+<h1 class="page-title" style="text-align: center;">用户注册</h1>
+<div class="ct">
+    <div>
+        <h1>用户注册</h1>
+    </div>
+    <div>
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/user_register" id="registerForm">
+            <div class="form-group">
+                <label for="user_id">用户账号</label>
+                <input type="text" class="form-control" id="user_id" name="user_id" placeholder="请输入邮箱或电话">
+            </div>
+            <div class="form-group">
+                <label for="pwd1">密码</label>
+                <input type="password" class="form-control" id="pwd1" name="password1" placeholder="密码">
+            </div>
+            <div class="form-group">
+                <label for="pwd1">确认密码</label>
+                <input type="password" class="form-control" id="pwd2" name="password2" placeholder="再次输入密码">
+            </div>
+            <div style="text-align: center">
+                <button type="submit" class="btn btn-primary" onclick="validpwd();">注 册</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+    function validpwd(){
+        var user_id=document.getElementById('user_id').value;
+        if(user_id.length<6){
+            alert('请重输入');
+            document.getElementById('user_id').value='';
+            document.getElementById('pwd1').value='';
+            document.getElementById('pwd2').value='';
+        }
+        else{
+            var password1=document.getElementById('pwd1').value;
+            var password2=document.getElementById('pwd2').value;
+            if(password1.length<6){
+                alert('密码过短，请重输入');
+                document.getElementById('pwd1').value='';
+                document.getElementById('pwd2').value='';
+            }
+            else{
+                if(password1!==password2){
+                    alert('密码不一致，请重输入');
+                    document.getElementById('pwd1').value='';
+                    document.getElementById('pwd2').value='';
+                }
+                else{
+                    document.getElementById('registerForm').submit();
+                }
+            }
+        }
+    }
+</script>
+</body>
+</html>

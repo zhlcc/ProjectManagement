@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>海洋牧场智慧监测系统</title>
+    <link rel="stylesheet" href="static/plugins/bootstrap-3.4.1-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="static/plugins/fontawesome-free-6.5.2-web/css/all.css">
+    <script src="static/plugins/fontawesome-free-6.5.2-web/js/all.js"></script>
+    <script src="static/js/chart.js"></script>
+    <style>
+        body{
+            background-image: url('static/img/user_index.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .date-time {
+            margin-right: 20px;
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .title{
+            text-align: center;
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .hardware-info-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.hardware-info-item {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 200px;
+}
+
+.hardware-info-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    color: #007bff;
+}
+
+.hardware-info-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.hardware-info-label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.hardware-info-value {
+    color: #6c757d;
+    font-size: 16px;
+}
+
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div style="height: 50px; line-height: 50px;">
+        <div class="col-sm-8">
+            <ul class="nav nav-pills">
+                <li role="presentation"><a href="/user">主要信息</a></li>
+                <li role="presentation" class="active"><a href="/underwater_system">水下系统</a></li>
+                <li role="presentation"><a href="/data_center">数据中心</a></li>
+            </ul>
+        </div>
+        <div class="col-sm-4 text-right">
+            <span class="date-time" id="dateTime"></span>
+        </div>
+    </div>
+    <div style="height:calc(100%-50px);">
+        <div class="col-sm-8">
+            <div class="col-sm-7">
+                <div style="height: 50%;padding:5px;">
+                    <p class="title">海洋牧场环境等级</p>
+                    <div class="text-center">
+                        {% if rank[0] == 'Ⅰ' %}
+                        <i class="glyphicon glyphicon-thumbs-up" style="font-size: 100px; color: green;"></i>
+                        {% elif rank[0] == 'Ⅱ' %}
+                        <i class="glyphicon glyphicon-ok" style="font-size: 100px; color: lightgreen;"></i>
+                        {% elif rank[0] == 'Ⅲ' %}
+                        <i class="glyphicon glyphicon-minus" style="font-size: 100px; color: yellow;"></i>
+                        {% elif rank[0] == 'Ⅳ' %}
+                        <i class="glyphicon glyphicon-warning-sign" style="font-size: 100px; color: orange;"></i>
+                        {% elif rank[0] == 'Ⅴ' %}
+                        <i class="glyphicon glyphicon-remove" style="font-size: 100px; color: red;"></i>
+                        {% endif %}
+                        <p class="title">水质类别: {{ rank[0] }}</p>
+                        <p class="title">pH类别: {{ rank[1] }}</p>
+                        <p class="title">溶氧量类别: {{ rank[2] }}</p>
+                        <p class="title">高猛酸盐类别: {{ rank[3] }}</p>
+                        <p class="title">氨氮类别: {{ rank[4] }}</p>
+                        <p class="title">总氮类别: {{ rank[5] }}</p>
+                    </div>
+                </div>
+                <div style="height: 50%;padding:5px;">
+                    <p class="title">鱼群数量变化（2015年至今）</p>
+                    <canvas id="fishNumChart"></canvas>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div style="height: 50%; padding: 20px; background-color: #333; border-radius: 10px;">
+                    <div class="title" style="color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px;">
+                        总信息统计展示
+                    </div>
+                    <div class="info-container" style="display: flex; justify-content: space-around;">
+                        <div class="info-item" style="text-align: center;">
+                            <i class="fas fa-camera" style="font-size: 32px; color: #fff; margin-bottom: 10px;"></i>
+                            <div style="color: white;">镜头: 5</div>
+                        </div>
+                        <div class="info-item" style="text-align: center;">
+                            <i class="fas fa-rotate" style="font-size: 32px; color: #fff; margin-bottom: 10px;"></i>
+                            <div style="color: white;">云台: 2</div>
+                        </div>
+                        <div class="info-item" style="text-align: center;">
+                            <i class="fas fa-microphone" style="font-size: 32px; color: #fff; margin-bottom: 10px;"></i>
+                            <div style="color: white;">声纳: 1</div>
+                        </div>
+                    </div>
+                    <div class="data-container" style="display: flex; justify-content: space-around; margin-top: 20px;">
+                        <div class="data-item" style="text-align: center;">
+                            <div style="color: white; font-size: 24px; font-weight: bold;">{{ nums[9]['num'] }}</div>
+                            <div style="color: white;">鱼总数</div>
+                        </div>
+                        <div class="data-item" style="text-align: center;">
+                            <div style="color: white; font-size: 24px; font-weight: bold;">
+                                {{ specie_num }}
+                            </div>
+                            <div style="color: white;">鱼群种类数</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="height: 50%; padding: 20px;">
+                    <p class="title">鱼群具体信息统计展示</p>
+                    <div>
+                        <form method="post" action="/underwater_system">
+                            <div>
+                                <label for="dataType1" class="control-label"
+                                       style="font-size: 18px; font-weight: bold; color: #fff">选择鱼群:</label>
+                                <select id="dataType1" class="form-control" style="font-size: 16px; height: 30px;"
+                                        name="specie">
+                                    {% for sp in species %}
+                                    <option value={{sp}}>{{sp}}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="dataType2" class="control-label"
+                                       style="font-size: 18px; font-weight: bold; color: #fff">查看指标:</label>
+                                <select id="dataType2" class="form-control" style="font-size: 16px; height: 30px;"
+                                        name="feature">
+                                    <option value='Weight(g)'>体重</option>
+                                    <option value=Length1(cm)>体长</option>
+                                </select>
+                            </div>
+                            <button id="viewHistoricalData" type="submit" class="btn btn-primary"
+                                    style="font-size: 16px; height: 30px;">查询
+                            </button>
+                        </form>
+                    </div>
+                    <canvas id="fishChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4">
+            <div style="height: 50%;padding:10px;">
+                <p class="title">硬件信息</p>
+                <div class="hardware-info-container">
+                    <div class="hardware-info-item">
+                        <div class="hardware-info-icon">
+                            <i class="fas fa-ethernet"></i>
+                        </div>
+                        <div class="hardware-info-content">
+                            <span class="hardware-info-label">网线长度</span>
+                            <span class="hardware-info-value">100m</span>
+                        </div>
+                    </div>
+                    <div class="hardware-info-item">
+                        <div class="hardware-info-icon">
+                            <i class="fas fa-ruler-horizontal"></i>
+                        </div>
+                        <div class="hardware-info-content">
+                            <span class="hardware-info-label">网箱宽度</span>
+                            <span class="hardware-info-value">50m</span>
+                        </div>
+                    </div>
+                    <div class="hardware-info-item">
+                        <div class="hardware-info-icon">
+                            <i class="fas fa-ruler-vertical"></i>
+                        </div>
+                        <div class="hardware-info-content">
+                            <span class="hardware-info-label">网箱深度</span>
+                            <span class="hardware-info-value">50m</span>
+                        </div>
+                    </div>
+                    <div class="hardware-info-item">
+                        <div class="hardware-info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="hardware-info-content">
+                            <span class="hardware-info-label">网箱经度</span>
+                            <span class="hardware-info-value">128.034</span>
+                        </div>
+                    </div>
+                    <div class="hardware-info-item">
+                        <div class="hardware-info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="hardware-info-content">
+                            <span class="hardware-info-label">网箱纬度</span>
+                            <span class="hardware-info-value">56.123</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="height: 50%;padding:10px">
+                <p class="title">鱼群种类统计</p>
+                <canvas id="fishSpeciesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+    function updateDateTime() {
+        var now = new Date();
+        var dateTimeString = now.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        document.getElementById('dateTime').textContent = dateTimeString;
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+</script>
+<script>
+    var fishNumData = {{ nums|tojson }};
+    var labels=[]
+    var fishNums=[]
+    for (var i=0;i<fishNumData.length;i++){
+        labels.push(fishNumData[i].year);
+        fishNums.push(fishNumData[i].num);
+    }
+
+
+    // 创建折线图
+    var ctx = document.getElementById('fishNumChart').getContext('2d');
+    var fishNumChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '鱼群数量',
+                data: fishNums,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '鱼群数量'
+                    },
+                    ticks:{
+                        color:'white'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: '年份',
+                        color: 'white'
+                    },
+                    ticks:{
+                        color:'white'
+                    }
+                },
+
+            },
+            responsive: true,
+            maintainAspectRatio: true
+        }
+    });
+</script>
+<script>
+    {% if data and feature and fish %}
+    var data={{data|tojson}};
+    var feature = "{{fish}} {{ feature }}";
+    var ctx = document.getElementById('fishChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: Array.from({length: data.length}, (_, i) => (i + 1).toString()),
+        datasets: [{
+            label: feature,
+            data: data,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks:{
+                        color:'white'
+                    }
+            },
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: feature,
+                color: 'white'
+            },
+            legend: {
+        labels: {
+          color: 'white'
+        }
+      }
+        },
+        responsive: true,
+        maintainAspectRatio: true
+    }
+});
+
+    {% endif %}
+</script>
+<script>
+    var fishSpeciesData = {{ species_num|tojson }};
+    var labels=[]
+    var Nums=[]
+    for (var i=0;i<fishSpeciesData.length;i++){
+        labels.push(fishSpeciesData[i].Species);
+        Nums.push(fishSpeciesData[i].SpeciesNum);
+    }
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    var Colors = [];
+    for (var i = 0; i < labels.length; i++) {
+      Colors.push(getRandomColor());
+    }
+    var ctx = document.getElementById('fishSpeciesChart').getContext('2d');
+var myChart = new Chart(ctx, {
+  type: 'pie',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: '鱼群种类',
+      data: Nums,
+      backgroundColor: Colors,
+      color: 'white'
+    }]
+  },
+  options: {
+    plugins: {
+      title: {
+        display: true,
+        text: 'Fish Species Distribution',
+        color: 'white'
+      },
+      legend: {
+        labels: {
+          color: 'white'
+        }
+      }
+    },
+    responsive: true,
+    maintainAspectRatio: true
+  }
+});
+</script>
+</body>
+</html>

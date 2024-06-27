@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>海洋牧场智慧监测系统</title>
+    <link rel="stylesheet" href="static/plugins/bootstrap-3.4.1-dist/css/bootstrap.css">
+    <script src="static/js/chart.js"></script>
+    <style>
+        body{
+            background-image: url('static/img/user_index.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .video-container {
+            padding: 10px;
+        }
+        .video-title {
+            text-align: center;
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .date-time {
+            margin-right: 20px;
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .water-title {
+            text-align: center;
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .chart-title {
+            color: #fff; /* 设置字体颜色为白色 */
+        }
+        .location-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div style="height: 50px; line-height: 50px;">
+        <div class="col-sm-8">
+            <ul class="nav nav-pills">
+                <li role="presentation" class="active"><a href="/user">主要信息</a></li>
+                <li role="presentation"><a href="/underwater_system">水下系统</a></li>
+                <li role="presentation"><a href="/data_center">数据中心</a></li>
+            </ul>
+        </div>
+        <div class="col-sm-4 text-right">
+            <span class="date-time" id="dateTime"></span>
+        </div>
+    </div>
+    <div style="height: calc(100% - 50px);">
+        <div class="col-sm-8" >
+            <div class="col-sm-6">
+                <div class="video-container">
+                    <p class="video-title">视频展示1</p>
+                    <video id="videoPlayer1" width="100%" controls loop>
+                        <source src="/static/img/video1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-container">
+                    <p class="video-title">视频展示2</p>
+                    <video id="videoPlayer2" width="100%" controls loop>
+                        <source src="/static/img/video2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div style="height: 50%; padding: 10px;">
+                    <p class="water-title chart-title">水文数据展示区域</p>
+                    <canvas id="waterQualityChart"></canvas>
+                </div>
+                <div style="height: 50%; padding: 10px;">
+                    <p class="water-title chart-title">海洋牧场定位</p>
+                    <img src="static/img/location.png" alt="海洋牧场位置" class="location-image">
+                </div>
+            </div>
+
+        </div>
+        <div class="col-sm-4">
+            <div style="height: 100%; padding: 10px;">
+                <p class="water-title chart-title">历史水温数据展示区</p>
+                <div>
+                    <form method="post" action="/user">
+                        <div>
+                            <label for="dataType" class="control-label"
+                                   style="font-size: 18px; font-weight: bold; color: #fff">查看指标:</label>
+                            <select id="dataType" class="form-control" style="font-size: 16px; height: 30px;" name="feature">
+                                <option value="水温">水温(℃)</option>
+                                <option value="pH">pH</option>
+                                <option value="溶氧量">溶氧量(mg/L)</option>
+                                <option value="浊度">浊度(NTU)</option>
+                                <option value="高锰酸盐指数">高锰酸盐指数(mg/L)</option>
+                                <option value="总氮">总氮(mg/L)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="startDate" class="control-label"
+                                   style="font-size: 18px; font-weight: bold; color: #fff">开始时间:</label>
+                            <input type="date" id="startDate" name="startDate" class="form-control"
+                                   style="font-size: 16px; height: 30px;">
+                        </div>
+                        <div>
+                            <label for="endDate" class="control-label"
+                                   style="font-size: 18px; font-weight: bold; color: #ffff">结束时间:</label>
+                            <input type="date" id="endDate" name="endDate" class="form-control"
+                                   style="font-size: 16px; height: 30px;">
+                        </div>
+                        <button id="viewHistoricalData" type="submit" class="btn btn-primary"
+                                style="font-size: 16px; height: 30px;">查看
+                        </button>
+                    </form>
+                </div>
+
+                <canvas id="historicalDataChart" class="historical-data-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function updateDateTime() {
+        var now = new Date();
+        var dateTimeString = now.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        document.getElementById('dateTime').textContent = dateTimeString;
+    }
+
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    videoPlayer1.addEventListener('ended', function() {
+        this.currentTime = 0;
+        this.play();
+    });
+    videoPlayer2.addEventListener('ended', function() {
+        this.currentTime = 0;
+        this.play();
+    });
+
+    {% if water_quality %}
+        // 准备数据
+        var labels = [
+            '水温(℃)', 'pH', '溶氧量(mg/L)', '浊度(NTU)', '高锰酸盐指数(mg/L)', '总氮(mg/L)'
+        ];
+        var data = [
+            {{ water_quality[0]['水温'] }},
+            {{ water_quality[0]['pH'] }},
+            {{ water_quality[0]['溶氧量'] }},
+            {{ water_quality[0]['浊度'] }},
+            {{ water_quality[0]['高锰酸盐指数'] }},
+            {{ water_quality[0]['总氮'] }}
+        ];
+
+        // 创建图表
+        var ctx = document.getElementById('waterQualityChart').getContext('2d');
+        var waterQualityChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '水质指标',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#fff' // 设置y轴刻度的字体颜色为白色
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#fff' // 设置x轴刻度的字体颜色为白色
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '水质指标',
+                        color: '#fff' // 设置标题字体颜色为白色
+                    },
+                    legend: {
+                        labels: {
+                            color: '#fff' // 设置图例文字颜色为白色
+                        }
+                    }
+                }
+            }
+        });
+    {% endif %}
+</script>
+
+<script>
+    {% if history_data and feature %}
+        var historyData = {{ history_data|tojson }};
+        var feature = "{{ feature }}";
+        var labels = [];
+        var featureValues = [];
+        for (var i = 0; i < historyData.length; i++) {
+            labels.push(historyData[i].date.toString());
+            featureValues.push(historyData[i][feature]);
+        }
+        var ctx = document.getElementById('historicalDataChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: feature,
+                    data: featureValues,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true
+                }]
+            },
+
+            options: {
+                scales: {
+                    x: {
+                        type: 'category',
+                        title: {
+                            display: false,
+                        },
+                        ticks:{
+                        color:'white'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: feature,
+                            color:'white'
+                        },
+                        ticks:{
+                        color:'white'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '水质数据',
+                        color: 'white'
+                    },
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                }
+            }
+        });
+    {% endif%}
+</script>
+</body>
+</html>
+
